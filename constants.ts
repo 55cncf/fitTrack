@@ -10,7 +10,8 @@ export const MOCK_WORKOUTS: Workout[] = [
     type: 'Yoga',
     description: 'Relaxing flow before bed.',
     intensity: 'Low',
-    image: 'https://picsum.photos/id/65/800/400'
+    image: 'https://picsum.photos/id/65/800/400',
+    completed: false
   },
   {
     id: '1',
@@ -23,7 +24,8 @@ export const MOCK_WORKOUTS: Workout[] = [
     heartRate: 145,
     description: 'Great morning run through the park. Weather was perfect and felt strong throughout the workout.',
     intensity: 'Moderate',
-    image: 'https://picsum.photos/id/73/800/400'
+    image: 'https://picsum.photos/id/73/800/400',
+    completed: true
   },
   {
     id: '2',
@@ -34,7 +36,8 @@ export const MOCK_WORKOUTS: Workout[] = [
     type: 'Weight Training',
     description: 'Upper body focus. Hit new PR on bench press.',
     intensity: 'High',
-    image: 'https://picsum.photos/id/20/800/400'
+    image: 'https://picsum.photos/id/20/800/400',
+    completed: true
   },
   {
     id: '3',
@@ -46,7 +49,8 @@ export const MOCK_WORKOUTS: Workout[] = [
     distance: 10,
     description: 'Indoor cycling session.',
     intensity: 'Moderate',
-    image: 'https://picsum.photos/id/74/800/400'
+    image: 'https://picsum.photos/id/74/800/400',
+    completed: true
   },
   {
     id: '4',
@@ -57,7 +61,8 @@ export const MOCK_WORKOUTS: Workout[] = [
     type: 'Yoga',
     description: 'Restorative yoga to help with recovery.',
     intensity: 'Low',
-    image: 'https://picsum.photos/id/65/800/400'
+    image: 'https://picsum.photos/id/65/800/400',
+    completed: true
   }
 ];
 

@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Clock, Calendar, Trophy, Zap, AlertCircle } from 'lucide-react';
 import { NotificationSetting } from '../types';
 import { DEFAULT_NOTIFICATIONS } from '../constants';
 
 const Notifications: React.FC = () => {
-  const [settings, setSettings] = useState<NotificationSetting[]>(DEFAULT_NOTIFICATIONS);
+  const [settings, setSettings] = useState<NotificationSetting[]>(() => {
+    try {
+      const saved = localStorage.getItem('fittrack_notifications');
+      return saved ? JSON.parse(saved) : DEFAULT_NOTIFICATIONS;
+    } catch (e) {
+      return DEFAULT_NOTIFICATIONS;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('fittrack_notifications', JSON.stringify(settings));
+  }, [settings]);
 
   const toggleSetting = (id: string) => {
     setSettings(settings.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s));

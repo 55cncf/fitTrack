@@ -1,34 +1,40 @@
 import React, { useState } from 'react';
 import { Menu, X, Home, Activity, BarChart2, Settings, User, Bell, LogOut, Database } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activePage: string;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   userAvatar?: string;
   userName?: string;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate, onLogout, userAvatar, userName }) => {
+const Layout: React.FC<LayoutProps> = ({ children, onLogout, userAvatar, userName }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
-    { id: 'integrations', label: 'Integrations', icon: Database },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: '/', label: 'Dashboard', icon: Home },
+    { id: '/analytics', label: 'Analytics', icon: BarChart2 },
+    { id: '/integrations', label: 'Integrations', icon: Database },
+    { id: '/notifications', label: 'Notifications', icon: Bell },
+    { id: '/profile', label: 'Profile', icon: User },
+    { id: '/settings', label: 'Settings', icon: Settings },
   ];
 
-  const handleNavClick = (page: string) => {
-    onNavigate(page);
+  const handleNavClick = (path: string) => {
+    navigate(path);
     setIsMobileMenuOpen(false);
   };
 
-  const getPageTitle = (id: string) => {
-    const item = navItems.find(i => i.id === id);
+  const getPageTitle = (path: string) => {
+    // Handle root path
+    if (path === '/') return 'Dashboard';
+    // Handle workout detail path
+    if (path.startsWith('/workout/')) return 'Workout Details';
+    
+    const item = navItems.find(i => i.id === path);
     return item ? item.label : 'FitTrack Pro';
   };
 
@@ -41,11 +47,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate, onLog
             {isMobileMenuOpen ? <X className="h-6 w-6 text-gray-600 dark:text-gray-300" /> : <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />}
             </button>
             <span className="font-bold text-lg text-gray-900 dark:text-white truncate">
-                {getPageTitle(activePage)}
+                {getPageTitle(location.pathname)}
             </span>
         </div>
         <button 
-            onClick={() => onNavigate('settings')} 
+            onClick={() => navigate('/settings')} 
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label="Settings"
         >
@@ -78,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate, onLog
             <ul className="space-y-1 px-3">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = activePage === item.id;
+                const isActive = location.pathname === item.id;
                 return (
                   <li key={item.id}>
                     <button
@@ -115,9 +121,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate, onLog
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Desktop Header */}
         <div className="hidden lg:flex items-center justify-between px-8 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{getPageTitle(activePage)}</h1>
+             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{getPageTitle(location.pathname)}</h1>
              <button 
-                onClick={() => onNavigate('settings')}
+                onClick={() => navigate('/settings')}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 title="Settings"
              >

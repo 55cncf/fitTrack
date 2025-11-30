@@ -6,16 +6,16 @@ interface ProfileProps {
   user: UserType;
   darkMode: boolean;
   toggleDarkMode: () => void;
+  onUpdateUser: (user: UserType) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, darkMode, toggleDarkMode }) => {
+const Profile: React.FC<ProfileProps> = ({ user, darkMode, toggleDarkMode, onUpdateUser }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState(user);
 
   const handleSave = () => {
     setIsEditing(false);
-    // In a real app, save to backend here
-    console.log('Saved:', profileData);
+    onUpdateUser(profileData);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

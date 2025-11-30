@@ -22,6 +22,7 @@ export interface Workout {
   description?: string;
   intensity?: 'Low' | 'Moderate' | 'High';
   image?: string;
+  completed?: boolean;
 }
 
 export interface Exercise {

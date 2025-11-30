@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
@@ -12,34 +13,66 @@ import { MOCK_WORKOUTS } from './constants';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [currentPage, setCurrentPage] = useState('dashboard');
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const navigate = useNavigate();
   
+  // Workouts State with Local Storage persistence
+  const [workouts, setWorkouts] = useState<Workout[]>(() => {
+    try {
+      const savedWorkouts = localStorage.getItem('fittrack_workouts');
+      return savedWorkouts ? JSON.parse(savedWorkouts) : MOCK_WORKOUTS;
+    } catch (e) {
+      return MOCK_WORKOUTS;
+    }
+  });
+
+  // Persist workouts whenever they change
+  useEffect(() => {
+    localStorage.setItem('fittrack_workouts', JSON.stringify(workouts));
+  }, [workouts]);
+
   // Persist User Session & Theme
   useEffect(() => {
-    const savedUser = localStorage.getItem('fittrack_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    
-    const savedTheme = localStorage.getItem('fittrack_theme');
-    if (savedTheme === 'dark') {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
+    try {
+      const savedUser = localStorage.getItem('fittrack_user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+      
+      const savedTheme = localStorage.getItem('fittrack_theme');
+      if (savedTheme === 'dark') {
+        setDarkMode(true);
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {
+      console.error("Error loading persisted data", e);
     }
   }, []);
 
   const handleLogin = (userData: User) => {
     setUser(userData);
     localStorage.setItem('fittrack_user', JSON.stringify(userData));
-    setCurrentPage('dashboard');
+    navigate('/');
   };
 
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('fittrack_user');
-    setCurrentPage('dashboard');
+    navigate('/');
+  };
+
+  const handleUpdateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    localStorage.setItem('fittrack_user', JSON.stringify(updatedUser));
+  };
+
+  const handleToggleWorkout = (id: string) => {
+    setWorkouts(prevWorkouts => prevWorkouts.map(w => {
+      if (w.id === id) {
+        return { ...w, completed: !w.completed };
+      }
+      return w;
+    }));
   };
 
   const toggleDarkMode = () => {
@@ -54,62 +87,49 @@ const App: React.FC = () => {
     }
   };
 
-  const renderContent = () => {
-    if (selectedWorkoutId) {
-       const workout = MOCK_WORKOUTS.find(w => w.id === selectedWorkoutId);
-       if (workout) {
-          return <WorkoutDetail workout={workout} onBack={() => setSelectedWorkoutId(null)} />;
-       }
-    }
-
-    switch (currentPage) {
-      case 'dashboard':
-        return (
-          <Dashboard 
-            user={user} 
-            workouts={MOCK_WORKOUTS} 
-            onViewWorkout={(id) => setSelectedWorkoutId(id)} 
-            onStartWorkout={() => console.log('Start workout')}
-          />
-        );
-      case 'analytics':
-        return <Analytics />;
-      case 'profile':
-        return <Profile user={user!} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />;
-      case 'notifications':
-        return <Notifications />;
-      case 'integrations':
-        return <Integrations />;
-      case 'settings':
-        return <Profile user={user!} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />; // Reusing Profile as Settings for simplicity in this demo
-      default:
-        return (
-            <Dashboard 
-                user={user} 
-                workouts={MOCK_WORKOUTS} 
-                onViewWorkout={(id) => setSelectedWorkoutId(id)} 
-                onStartWorkout={() => console.log('Start workout')}
-            />
-        );
-    }
-  };
-
   if (!user) {
     return <Auth onLogin={handleLogin} />;
   }
 
   return (
     <Layout 
-      activePage={currentPage} 
-      onNavigate={(page) => {
-          setCurrentPage(page);
-          setSelectedWorkoutId(null);
-      }} 
       onLogout={handleLogout}
       userAvatar={user.avatar}
       userName={user.name}
     >
-      {renderContent()}
+      <Routes>
+        <Route path="/" element={
+          <Dashboard 
+            user={user} 
+            workouts={workouts} 
+            onStartWorkout={() => console.log('Start workout')}
+            onToggleWorkout={handleToggleWorkout}
+          />
+        } />
+        <Route path="/workout/:id" element={
+          <WorkoutDetail workouts={workouts} />
+        } />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/integrations" element={<Integrations />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/profile" element={
+          <Profile 
+            user={user} 
+            darkMode={darkMode} 
+            toggleDarkMode={toggleDarkMode}
+            onUpdateUser={handleUpdateUser}
+          />
+        } />
+        <Route path="/settings" element={
+           <Profile 
+            user={user} 
+            darkMode={darkMode} 
+            toggleDarkMode={toggleDarkMode}
+            onUpdateUser={handleUpdateUser}
+          />
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Layout>
   );
 };

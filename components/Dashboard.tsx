@@ -1,21 +1,23 @@
 import React from 'react';
-import { Flame, Activity, Clock, Plus, Calendar, Target, Zap, ChevronRight, CheckSquare, Square, MoreHorizontal } from 'lucide-react';
+import { Flame, Activity, Clock, Plus, Target, Square, CheckSquare, MoreHorizontal } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Workout } from '../types';
 
 interface DashboardProps {
   user: any;
   workouts: Workout[];
-  onViewWorkout: (id: string) => void;
   onStartWorkout: () => void;
+  onToggleWorkout: (id: string) => void;
 }
 
 interface WorkoutCardProps {
   workout: Workout;
   isUpcoming: boolean;
   onViewWorkout: (id: string) => void;
+  onToggleWorkout: (id: string) => void;
 }
 
-const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, isUpcoming, onViewWorkout }) => (
+const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, isUpcoming, onViewWorkout, onToggleWorkout }) => (
   <div 
    onClick={() => onViewWorkout(workout.id)}
    className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden cursor-pointer transition-all hover:shadow-md flex flex-col h-full"
@@ -30,7 +32,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, isUpcoming, onViewWo
              {workout.intensity}
          </span>
       </div>
-      {isUpcoming && (
+      {!workout.completed && (
           <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-white text-xs font-medium flex items-center">
               <Clock className="h-3 w-3 mr-1" />
               {new Date(workout.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -56,11 +58,14 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, isUpcoming, onViewWo
          </div>
          <button 
              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-             onClick={(e) => { e.stopPropagation(); /* Toggle status logic */ }}
-             title={isUpcoming ? "Mark as Done" : "Mark as Not Done"}
+             onClick={(e) => { 
+                 e.stopPropagation(); 
+                 onToggleWorkout(workout.id); 
+             }}
+             title={workout.completed ? "Mark as Not Done" : "Mark as Done"}
          >
-             {isUpcoming ? 
-                 <Square className="h-6 w-6 text-gray-400" /> : 
+             {!workout.completed ? 
+                 <Square className="h-6 w-6 text-gray-400 hover:text-primary-600" /> : 
                  <CheckSquare className="h-6 w-6 text-primary-600" />
              }
          </button>
@@ -69,17 +74,22 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, isUpcoming, onViewWo
  </div>
 );
 
-const Dashboard: React.FC<DashboardProps> = ({ user, workouts, onViewWorkout, onStartWorkout }) => {
+const Dashboard: React.FC<DashboardProps> = ({ user, workouts, onStartWorkout, onToggleWorkout }) => {
+  const navigate = useNavigate();
+
   // Calculated stats for demo
   const caloriesBurned = 2450;
   const goalsCompleted = 12;
   const weeklyProgress = 15;
   const activeTime = "3h 25m";
 
-  // Separate workouts into "Upcoming" and "History"
-  const now = new Date();
-  const upcomingWorkouts = workouts.filter(w => new Date(w.date) > now);
-  const pastWorkouts = workouts.filter(w => new Date(w.date) <= now);
+  // Separate workouts based on 'completed' status
+  const upcomingWorkouts = workouts.filter(w => !w.completed);
+  const pastWorkouts = workouts.filter(w => w.completed);
+
+  const handleViewWorkout = (id: string) => {
+    navigate(`/workout/${id}`);
+  };
 
   return (
     <div className="space-y-8 pb-20"> {/* pb-20 for FAB space */}
@@ -108,7 +118,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, workouts, onViewWorkout, on
          {upcomingWorkouts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upcomingWorkouts.map(workout => (
-                    <WorkoutCard key={workout.id} workout={workout} isUpcoming={true} onViewWorkout={onViewWorkout} />
+                    <WorkoutCard 
+                        key={workout.id} 
+                        workout={workout} 
+                        isUpcoming={true} 
+                        onViewWorkout={handleViewWorkout} 
+                        onToggleWorkout={onToggleWorkout}
+                    />
                 ))}
             </div>
          ) : (
@@ -144,7 +160,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, workouts, onViewWorkout, on
         {pastWorkouts.length > 0 ? (
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {pastWorkouts.map((workout) => (
-                <WorkoutCard key={workout.id} workout={workout} isUpcoming={false} onViewWorkout={onViewWorkout} />
+                <WorkoutCard 
+                    key={workout.id} 
+                    workout={workout} 
+                    isUpcoming={false} 
+                    onViewWorkout={handleViewWorkout} 
+                    onToggleWorkout={onToggleWorkout}
+                />
               ))}
             </div>
         ) : (
